@@ -1,1 +1,1 @@
-# Grin & Gourmet: Companion App
+# Grin & Gourmet
