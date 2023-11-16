@@ -1,1 +1,1 @@
-# CMPSC-472-Final-Project
+# Grin & Gourmet: Companion App
