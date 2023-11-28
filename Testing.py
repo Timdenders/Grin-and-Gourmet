@@ -1,3 +1,6 @@
+import csv
+
+
 class Image:
     def __init__(self, imagePath):
         self.imagePath = imagePath
@@ -10,14 +13,18 @@ class Image:
 
 
 class Recipe:
-    def __init__(self, name, instructions, images=None, rating=0):
+    def __init__(self, name, ingredients, instructions, images=None, rating=0):
         self.name = name
+        self.ingredients = ingredients
         self.instructions = instructions
         self.images = images if images else []
         self.rating = rating
 
     def getName(self):
         return self.name
+
+    def getIngredients(self):
+        return self.ingredients
 
     def getInstructions(self):
         return self.instructions
@@ -30,6 +37,9 @@ class Recipe:
 
     def setName(self, name):
         self.name = name
+
+    def setIngredients(self, ingredients):
+        self.ingredients = ingredients
 
     def setInstructions(self, instructions):
         self.instructions = instructions
@@ -76,6 +86,7 @@ class CookingAssistant:
         recipe = self.recipes.getRecipeByName(name)
         if recipe:
             print(f"Recipe Name: {recipe.getName()}")
+            print(f"Ingredients: {recipe.getIngredients}")
             print(f"Instructions: {recipe.getInstructions()}")
             print("Images:")
             for image in recipe.getImages():
