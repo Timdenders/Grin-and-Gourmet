@@ -1,5 +1,9 @@
+"""
+Testing the ability to open an images in tkinter
+"""
 import tkinter as tk
 from PIL import Image, ImageTk
+
 
 def open_image():
     image_path = entry.get()  # Get the image path from an entry widget or any other source
@@ -13,11 +17,12 @@ def open_image():
         except IOError:
             print(f"Unable to open image '{image_path}'.")
 
+
 # Create the main window
 root = tk.Tk()
 root.title("Image Viewer")
 
-# Entry widget for image path
+# Entry widget for the image path
 entry = tk.Entry(root)
 entry.pack()
 

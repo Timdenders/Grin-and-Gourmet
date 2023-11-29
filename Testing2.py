@@ -1,3 +1,6 @@
+"""
+Testing tkinter and creating a simple gui
+"""
 import tkinter as tk
 from tkinter import messagebox
 

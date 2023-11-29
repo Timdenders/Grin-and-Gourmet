@@ -1,3 +1,6 @@
+"""
+Implementing the basic functions and testing them
+"""
 import csv
 
 
@@ -78,6 +81,7 @@ class RecipeManager:
         return filtered_recipes
 
 
+# Function testing
 class CookingAssistant:
     def __init__(self):
         self.recipes = RecipeManager()
