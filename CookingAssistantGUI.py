@@ -6,23 +6,35 @@ from RecipeManager import *
 class CookingAssistant:
     def __init__(self):
         self.recipes = RecipeManager()
+        self.loaded = False
+
+    def loadRecipes(self, file_name):
+        if not self.loaded:
+            self.recipes.loadRecipesFromCSV(file_name)
+            self.loaded = True
 
     def displayRecipe(self, selected_recipe):
-        self.recipes.loadRecipesFromCSV("recipes.csv")
-        recipe = self.recipes.getRecipeByName(selected_recipe.get())
-        if recipe:
-            info = (f"Recipe Name: {recipe.getName()}\n"
-                    f"Ingredients: {recipe.getIngredients()}"
-                    f"Instructions: {recipe.getInstructions()}\n"
-                    f"Images: {[image.getImagePath() for image in recipe.getImages()]}\n"
-                    f"Rating: {recipe.getRating()}")
-            messagebox.showinfo("Recipe Details", info)
+        if selected_recipe.get().lower() == "Select Recipe".lower():
+            messagebox.showerror("Error", "Please select a recipe.")
         else:
-            messagebox.showerror("Error", "Recipe not found.")
+            self.recipes.loadRecipesFromCSV("recipes.csv")
+            recipe = self.recipes.getRecipeByName(selected_recipe.get())
+            if recipe:
+                info = (f"Recipe Name: {recipe.getName()}\n"
+                        f"Ingredients: {recipe.getIngredients()}"
+                        f"Instructions: {recipe.getInstructions()}\n"
+                        f"Images: {[image.getImagePath() for image in recipe.getImages()]}\n"
+                        f"Rating: {recipe.getRating()}")
+                messagebox.showinfo("Recipe Details", info)
+            else:
+                messagebox.showerror("Error", "Recipe not found.")
 
     def getRecipeNames(self):
-        self.recipes.loadRecipesFromCSV("recipes.csv")
-        return [recipe.getName() for recipe in self.recipes.recipes]
+        self.loadRecipes("recipes.csv")
+        recipe_names = [recipe.getName() for recipe in self.recipes.recipes]
+        recipe_names.sort()
+        recipe_names.insert(0, "Select Recipe")
+        return recipe_names
 
     def filterRecipes(self, keyword):
         filtered_recipes = self.recipes.filterRecipesByKeyword(keyword)
@@ -41,26 +53,24 @@ class CookingAssistantGUI:
         self.master = master
         self.master.title("Cooking Assistant")
 
-        # Creating widgets
-        self.label = tk.Label(master, text="Select Recipe:")
-        self.label.pack()
-
         # Dropdown for recipe selection
         self.selected_recipe = tk.StringVar(master)
         self.dropdown = tk.OptionMenu(master, self.selected_recipe, *self.get_recipe_names())
-        self.dropdown.pack()
+        self.dropdown.grid(row=0, column=0, padx=5, pady=5)  # Placed in the first row and column
+
+        self.selected_recipe.set(self.get_recipe_names()[0])
 
         self.display_button = tk.Button(master, text="Display Recipe", command=self.display_recipe)
-        self.display_button.pack()
+        self.display_button.grid(row=0, column=1, padx=5, pady=5)  # Placed in the first row and second column
 
         self.filter_label = tk.Label(master, text="Enter Keyword to Filter Recipes:")
-        self.filter_label.pack()
+        self.filter_label.grid(row=1, column=0, padx=5, pady=5)  # Placed in the second row and first column
 
         self.filter_entry = tk.Entry(master)
-        self.filter_entry.pack()
+        self.filter_entry.grid(row=1, column=1, padx=5, pady=5)  # Placed in the second row and second column
 
         self.filter_button = tk.Button(master, text="Filter Recipes", command=self.filter_recipes)
-        self.filter_button.pack()
+        self.filter_button.grid(row=2, columnspan=2, padx=5, pady=5)  # Spans across two columns in the third row
 
     def display_recipe(self):
         self.cooking_assistant.displayRecipe(self.selected_recipe)
