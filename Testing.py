@@ -86,6 +86,7 @@ class RecipeManager:
             for recipe in self.recipes:
                 writer.writerow([
                     recipe.getName(),
+                    recipe.getIngredients(),
                     recipe.getInstructions(),
                     recipe.getRating(),
                     ', '.join([image.getImagePath() for image in recipe.getImages()])
@@ -95,9 +96,9 @@ class RecipeManager:
         with open(filename, 'r') as csvfile:
             reader = csv.reader(csvfile)
             for row in reader:
-                name, instructions, rating, image_paths = row
+                name, ingredients, instructions, rating, image_paths = row
                 images = [Image(path.strip()) for path in image_paths.split(',')]
-                self.addRecipe(Recipe(name, instructions, images, int(rating)))
+                self.addRecipe(Recipe(name, ingredients, instructions, images, int(rating)))
 
 
 # Function testing
@@ -109,7 +110,7 @@ class CookingAssistant:
         recipe = self.recipes.getRecipeByName(name)
         if recipe:
             print(f"Recipe Name: {recipe.getName()}")
-            print(f"Ingredients: {recipe.getIngredients}")
+            print(f"Ingredients: {recipe.getIngredients()}")
             print(f"Instructions: {recipe.getInstructions()}")
             print("Images:")
             for image in recipe.getImages():
@@ -133,15 +134,17 @@ if __name__ == "__main__":
     # Creating a Cooking Assistant instance
     cooking_assistant = CookingAssistant()
 
-    # Creating a few recipes
-    recipe1 = Recipe("Pasta", "Boil pasta, add sauce.", "Pasta", [Image("pasta_image.jpg")], 4)
-    recipe2 = Recipe("Salad", "Chop veggies, mix with dressing.", "Salad", [Image("salad_image.jpg")], 5)
-    recipe3 = Recipe("Soup", "Simmer ingredients for 30 mins.", "Soup", [Image("soup_image.jpg")], 3)
+    # # Creating a few recipes
+    # recipe1 = Recipe("Pasta", "Pasta","Boil pasta, add sauce.",  [Image("pasta_image.jpg")], 4)
+    # recipe2 = Recipe("Salad", "Salad","Chop veggies, mix with dressing.",  [Image("salad_image.jpg")], 5)
+    # recipe3 = Recipe("Soup", "Soup","Simmer ingredients for 30 mins.",  [Image("soup_image.jpg")], 3)
+    #
+    # # Adding recipes to the RecipeManager
+    # cooking_assistant.recipes.addRecipe(recipe1)
+    # cooking_assistant.recipes.addRecipe(recipe2)
+    # cooking_assistant.recipes.addRecipe(recipe3)
 
-    # Adding recipes to the RecipeManager
-    cooking_assistant.recipes.addRecipe(recipe1)
-    cooking_assistant.recipes.addRecipe(recipe2)
-    cooking_assistant.recipes.addRecipe(recipe3)
+    cooking_assistant.recipes.loadRecipesFromCSV("recipes.csv")
 
     # Displaying a recipe
     cooking_assistant.displayRecipe("Pasta")
@@ -150,6 +153,8 @@ if __name__ == "__main__":
     cooking_assistant.filterRecipes("salad")
 
     print()
-    
+
     for i in cooking_assistant.recipes.recipes:
         print(i.getName())
+
+    # cooking_assistant.recipes.saveRecipesToCSV("recipes.csv")
