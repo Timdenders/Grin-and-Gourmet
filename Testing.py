@@ -80,6 +80,25 @@ class RecipeManager:
                 filtered_recipes.append(recipe)
         return filtered_recipes
 
+    def saveRecipesToCSV(self, filename):
+        with open(filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for recipe in self.recipes:
+                writer.writerow([
+                    recipe.getName(),
+                    recipe.getInstructions(),
+                    recipe.getRating(),
+                    ', '.join([image.getImagePath() for image in recipe.getImages()])
+                ])
+
+    def loadRecipesFromCSV(self, filename):
+        with open(filename, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                name, instructions, rating, image_paths = row
+                images = [Image(path.strip()) for path in image_paths.split(',')]
+                self.addRecipe(Recipe(name, instructions, images, int(rating)))
+
 
 # Function testing
 class CookingAssistant:
@@ -115,9 +134,9 @@ if __name__ == "__main__":
     cooking_assistant = CookingAssistant()
 
     # Creating a few recipes
-    recipe1 = Recipe("Pasta", "Boil pasta, add sauce.", [Image("pasta_image.jpg")], 4)
-    recipe2 = Recipe("Salad", "Chop veggies, mix with dressing.", [Image("salad_image.jpg")], 5)
-    recipe3 = Recipe("Soup", "Simmer ingredients for 30 mins.", [Image("soup_image.jpg")], 3)
+    recipe1 = Recipe("Pasta", "Boil pasta, add sauce.", "Pasta", [Image("pasta_image.jpg")], 4)
+    recipe2 = Recipe("Salad", "Chop veggies, mix with dressing.", "Salad", [Image("salad_image.jpg")], 5)
+    recipe3 = Recipe("Soup", "Simmer ingredients for 30 mins.", "Soup", [Image("soup_image.jpg")], 3)
 
     # Adding recipes to the RecipeManager
     cooking_assistant.recipes.addRecipe(recipe1)
@@ -129,3 +148,8 @@ if __name__ == "__main__":
 
     # Filtering recipes
     cooking_assistant.filterRecipes("salad")
+
+    print()
+    
+    for i in cooking_assistant.recipes.recipes:
+        print(i.getName())

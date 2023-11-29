@@ -11,7 +11,7 @@ recipes = [
                       "black pepper and salt. Serve immediately.",
         "Rating": 4.5,
         "Image Path": "RecipeImages/MOCKIMAGE.png"
-    },
+    }
     # Add more recipes here...
 ]
 
