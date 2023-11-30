@@ -1,6 +1,3 @@
-"""
-Implementing the basic functions and testing them
-"""
 import csv
 
 
@@ -16,12 +13,12 @@ class Image:
 
 
 class Recipe:
-    def __init__(self, name, ingredients, instructions, images=None, rating=0):
+    def __init__(self, name, ingredients, instructions, rating=0, images=None):
         self.name = name
         self.ingredients = ingredients
         self.instructions = instructions
-        self.images = images if images else []
         self.rating = rating
+        self.images = images if images else []
 
     def getName(self):
         return self.name
@@ -47,11 +44,11 @@ class Recipe:
     def setInstructions(self, instructions):
         self.instructions = instructions
 
-    def setImages(self, images):
-        self.images = images
-
     def setRating(self, rating):
         self.rating = rating
+
+    def setImages(self, imagesPath):
+        self.images = Image(imagesPath)
 
 
 class RecipeManager:
@@ -98,63 +95,4 @@ class RecipeManager:
             for row in reader:
                 name, ingredients, instructions, rating, image_paths = row
                 images = [Image(path.strip()) for path in image_paths.split(',')]
-                self.addRecipe(Recipe(name, ingredients, instructions, images, int(rating)))
-
-
-# Function testing
-class CookingAssistant:
-    def __init__(self):
-        self.recipes = RecipeManager()
-
-    def displayRecipe(self, name):
-        recipe = self.recipes.getRecipeByName(name)
-        if recipe:
-            print(f"Recipe Name: {recipe.getName()}")
-            print(f"Ingredients: {recipe.getIngredients()}")
-            print(f"Instructions: {recipe.getInstructions()}")
-            print("Images:")
-            for image in recipe.getImages():
-                print(image.getImagePath())
-            print(f"Rating: {recipe.getRating()}")
-        else:
-            print("Recipe not found.")
-
-    def filterRecipes(self, keyword):
-        filtered_recipes = self.recipes.filterRecipesByKeyword(keyword)
-        if filtered_recipes:
-            print(f"Recipes containing '{keyword}':")
-            for recipe in filtered_recipes:
-                print(recipe.getName())
-        else:
-            print("No recipes found for the given keyword.")
-
-
-# Example Usage:
-if __name__ == "__main__":
-    # Creating a Cooking Assistant instance
-    cooking_assistant = CookingAssistant()
-
-    # # Creating a few recipes
-    # recipe1 = Recipe("Pasta", "Pasta","Boil pasta, add sauce.",  [Image("pasta_image.jpg")], 4)
-    # recipe2 = Recipe("Salad", "Salad","Chop veggies, mix with dressing.",  [Image("salad_image.jpg")], 5)
-    # recipe3 = Recipe("Soup", "Soup","Simmer ingredients for 30 mins.",  [Image("soup_image.jpg")], 3)
-    #
-    # # Adding recipes to the RecipeManager
-    # cooking_assistant.recipes.addRecipe(recipe1)
-    # cooking_assistant.recipes.addRecipe(recipe2)
-    # cooking_assistant.recipes.addRecipe(recipe3)
-
-    cooking_assistant.recipes.loadRecipesFromCSV("recipes.csv")
-
-    # Displaying a recipe
-    cooking_assistant.displayRecipe("Pasta")
-
-    # Filtering recipes
-    cooking_assistant.filterRecipes("salad")
-
-    print()
-
-    for i in cooking_assistant.recipes.recipes:
-        print(i.getName())
-
-    # cooking_assistant.recipes.saveRecipesToCSV("recipes.csv")
+                self.addRecipe(Recipe(name, ingredients, instructions,float(rating), images))
