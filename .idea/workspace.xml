@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2a44b7c5-26c2-4251-9082-e4c8a18c3f0e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/CMPSC-472-Final-Project.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CMPSC-472-Final-Project.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CookingAssistantGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/CookingAssistantGUI.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RecipeManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/RecipeManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Testing4.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/recipes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/recipes.csv" afterDir="false" />
-    </list>
+    <list default="true" id="2a44b7c5-26c2-4251-9082-e4c8a18c3f0e" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
