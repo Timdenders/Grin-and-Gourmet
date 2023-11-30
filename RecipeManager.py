@@ -13,12 +13,12 @@ class Image:
 
 
 class Recipe:
-    def __init__(self, name, ingredients, instructions, images=None, rating=0):
+    def __init__(self, name, ingredients, instructions, rating=0, images=None):
         self.name = name
         self.ingredients = ingredients
         self.instructions = instructions
-        self.images = images if images else []
         self.rating = rating
+        self.images = images if images else []
 
     def getName(self):
         return self.name
@@ -44,11 +44,11 @@ class Recipe:
     def setInstructions(self, instructions):
         self.instructions = instructions
 
-    def setImages(self, images):
-        self.images = images
-
     def setRating(self, rating):
         self.rating = rating
+
+    def setImages(self, imagesPath):
+        self.images = Image(imagesPath)
 
 
 class RecipeManager:
@@ -95,4 +95,4 @@ class RecipeManager:
             for row in reader:
                 name, ingredients, instructions, rating, image_paths = row
                 images = [Image(path.strip()) for path in image_paths.split(',')]
-                self.addRecipe(Recipe(name, ingredients, instructions, images, int(rating)))
+                self.addRecipe(Recipe(name, ingredients, instructions,int(rating), images))

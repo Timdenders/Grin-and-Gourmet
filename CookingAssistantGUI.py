@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 from RecipeManager import *
+from PIL import Image, ImageTk
 
 
 class CookingAssistant:
@@ -12,22 +13,6 @@ class CookingAssistant:
         if not self.loaded:
             self.recipes.loadRecipesFromCSV(file_name)
             self.loaded = True
-
-    def displayRecipe(self, selected_recipe):
-        if selected_recipe.get().lower() == "Select Recipe".lower():
-            messagebox.showerror("Error", "Please select a recipe.")
-        else:
-            self.recipes.loadRecipesFromCSV("recipes.csv")
-            recipe = self.recipes.getRecipeByName(selected_recipe.get())
-            if recipe:
-                info = (f"Recipe Name: {recipe.getName()}\n"
-                        f"Ingredients: {recipe.getIngredients()}"
-                        f"Instructions: {recipe.getInstructions()}\n"
-                        f"Images: {[image.getImagePath() for image in recipe.getImages()]}\n"
-                        f"Rating: {recipe.getRating()}")
-                messagebox.showinfo("Recipe Details", info)
-            else:
-                messagebox.showerror("Error", "Recipe not found.")
 
     def getRecipeNames(self):
         self.loadRecipes("recipes.csv")
@@ -73,7 +58,45 @@ class CookingAssistantGUI:
         self.filter_button.grid(row=2, columnspan=2, padx=5, pady=5)  # Spans across two columns in the third row
 
     def display_recipe(self):
-        self.cooking_assistant.displayRecipe(self.selected_recipe)
+        selected_recipe = self.selected_recipe.get()
+
+        if selected_recipe.lower() == "Select Recipe".lower():
+            messagebox.showerror("Error", "Please select a recipe.")
+        else:
+            self.cooking_assistant.loadRecipes("recipes.csv")
+            recipe = self.cooking_assistant.recipes.getRecipeByName(selected_recipe)
+            if recipe:
+                recipe_window = tk.Toplevel(self.master)
+                recipe_window.title(selected_recipe)
+
+                images = recipe.getImages()
+
+                for i, image in enumerate(images):
+                    if (image.getImagePath()):
+                        try:
+                            img = Image.open(image.getImagePath())
+                            img = img.resize((200, 200))  # Resize the image as needed
+                            photo = ImageTk.PhotoImage(img)
+                            image_label = tk.Label(recipe_window, image=photo)
+                            image_label.image = photo
+                            image_label.grid(row=i, column=0, padx=5, pady=5)
+
+                        except FileNotFoundError:
+                            error_label = tk.Label(recipe_window, text="Image not found")
+                            error_label.grid(row=i, column=0, padx=5, pady=5)
+                    else:
+                        error_label = tk.Label(recipe_window, text="No image path provided")
+                        error_label.grid(row=i, column=0, padx=5, pady=5)
+
+                # Display Recipe Info
+                info_label = tk.Label(recipe_window, text=f"Recipe Name: {recipe.getName()}\n"
+                                                          f"Ingredients: {recipe.getIngredients()}\n"
+                                                          f"Instructions: {recipe.getInstructions()}\n"
+                                                          f"Rating: {recipe.getRating()}")
+                info_label.grid(row=len(images), column=0, padx=5, pady=5)
+
+            else:
+                messagebox.showerror("Error", "Recipe not found.")
 
     def get_recipe_names(self):
         return self.cooking_assistant.getRecipeNames()
