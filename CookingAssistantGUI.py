@@ -3,7 +3,6 @@ from tkinter import messagebox
 from RecipeManager import *
 from PIL import Image, ImageTk
 
-
 class CookingAssistant:
     def __init__(self):
         self.recipes = RecipeManager()
@@ -28,7 +27,6 @@ class CookingAssistant:
             messagebox.showinfo("Filtered Recipes", f"Recipes containing '{keyword}': {recipes_list}")
         else:
             messagebox.showinfo("Filtered Recipes", f"No recipes found for the given keyword.")
-
 
 class CookingAssistantGUI:
     def __init__(self, master):
@@ -69,31 +67,51 @@ class CookingAssistantGUI:
                 recipe_window = tk.Toplevel(self.master)
                 recipe_window.title(selected_recipe)
 
-                images = recipe.getImages()
+                recipe_frame = tk.Frame(recipe_window)
+                recipe_frame.pack()
 
+                # Recipe Name
+                name_label = tk.Label(recipe_frame, text=f"{recipe.getName()}")
+                name_label.pack()
+
+                # Images
+                images = recipe.getImages()
                 for i, image in enumerate(images):
-                    if (image.getImagePath()):
+                    if image.getImagePath():
                         try:
                             img = Image.open(image.getImagePath())
                             img = img.resize((200, 200))  # Resize the image as needed
                             photo = ImageTk.PhotoImage(img)
-                            image_label = tk.Label(recipe_window, image=photo)
+                            image_label = tk.Label(recipe_frame, image=photo)
                             image_label.image = photo
-                            image_label.grid(row=i, column=0, padx=5, pady=5)
+                            image_label.pack()
 
                         except FileNotFoundError:
-                            error_label = tk.Label(recipe_window, text="Image not found")
-                            error_label.grid(row=i, column=0, padx=5, pady=5)
+                            error_label = tk.Label(recipe_frame, text="Image not found")
+                            error_label.pack()
                     else:
-                        error_label = tk.Label(recipe_window, text="No image path provided")
-                        error_label.grid(row=i, column=0, padx=5, pady=5)
+                        error_label = tk.Label(recipe_frame, text="No image path provided")
+                        error_label.pack()
 
-                # Display Recipe Info
-                info_label = tk.Label(recipe_window, text=f"Recipe Name: {recipe.getName()}\n"
-                                                          f"Ingredients: {recipe.getIngredients()}\n"
-                                                          f"Instructions: {recipe.getInstructions()}\n"
-                                                          f"Rating: {recipe.getRating()}")
-                info_label.grid(row=len(images), column=0, padx=5, pady=5)
+                # Rating
+                rating_label = tk.Label(recipe_frame, text=f"Rating: {recipe.getRating()}")
+                rating_label.pack()
+
+                # Ingredients
+                ingredients_label = tk.Label(recipe_frame, text="Ingredients:")
+                ingredients_label.pack()
+                ingredients_text = tk.Text(recipe_frame, wrap="word", height=10, width=50)
+                ingredients_text.insert(tk.END, recipe.getIngredients())
+                ingredients_text.config(state=tk.DISABLED)
+                ingredients_text.pack()
+
+                # Instructions
+                instructions_label = tk.Label(recipe_frame, text="Instructions:")
+                instructions_label.pack()
+                instructions_text = tk.Text(recipe_frame, wrap="word", height=15, width=50)
+                instructions_text.insert(tk.END, recipe.getInstructions())
+                instructions_text.config(state=tk.DISABLED)
+                instructions_text.pack()
 
             else:
                 messagebox.showerror("Error", "Recipe not found.")
@@ -105,12 +123,10 @@ class CookingAssistantGUI:
         keyword = self.filter_entry.get()
         self.cooking_assistant.filterRecipes(keyword)
 
-
 def run_gui():
     root = tk.Tk()
     app = CookingAssistantGUI(root)
     root.mainloop()
-
 
 # Running the GUI
 if __name__ == "__main__":

@@ -95,4 +95,4 @@ class RecipeManager:
             for row in reader:
                 name, ingredients, instructions, rating, image_paths = row
                 images = [Image(path.strip()) for path in image_paths.split(',')]
-                self.addRecipe(Recipe(name, ingredients, instructions,int(rating), images))
+                self.addRecipe(Recipe(name, ingredients, instructions,float(rating), images))

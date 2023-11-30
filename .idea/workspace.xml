@@ -4,7 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="2a44b7c5-26c2-4251-9082-e4c8a18c3f0e" name="Changes" comment="" />
+    <list default="true" id="2a44b7c5-26c2-4251-9082-e4c8a18c3f0e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1391877822515.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1474588972138.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1482181364458.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1491576664065.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1507047931718.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1526332485385.jpeg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/RecipeImages/1547591055394.jpeg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CookingAssistantGUI.py" beforeDir="false" afterPath="$PROJECT_DIR$/CookingAssistantGUI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RecipeManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/RecipeManager.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/recipes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/recipes.csv" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
