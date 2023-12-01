@@ -22,6 +22,161 @@ import os
 import shutil
 
 
+class RecipeEditDialog(ModalView):
+    def __init__(self, session_manager, recipe_name, **kwargs):
+        super().__init__(**kwargs)
+        self.session_manager = session_manager
+        self.recipe_name = recipe_name
+        self.image_path = None
+        self.recipe_rating = None
+        self.size_hint = (0.95, 0.95)
+        self.box_layout = BoxLayout(orientation='vertical')
+        self.box_layout.id = 'recipe_edit_box_layout'
+        self.recipe_name_input = TextInput(
+            background_color=(0, 0, 0.2, 1),
+            foreground_color=(1, 1, 1, 1),
+            halign='center',
+            hint_text='Name',
+            multiline=False,
+            pos_hint={'center_x': 0.5},
+            size_hint=(1, 0.1),
+            readonly=True
+        )
+        self.box_layout.add_widget(self.recipe_name_input)
+        self.box_layout.add_widget(
+            Button(background_color='#145DA0', on_press=self.choose_recipe_picture, size_hint=(1, 0.09),
+                   text='Upload Recipe Picture'))
+        self.image_label = AsyncImage(source='', size_hint=(1, 0.6))
+        self.box_layout.add_widget(self.image_label)
+        self.image_description = TextInput(
+            hint_text='Description',
+            multiline=True,
+            pos_hint={'center_x': 0.5},
+            size_hint=(1, 0.1)
+        )
+        self.box_layout.add_widget(self.image_description)
+        self.recipe_instructions = TextInput(
+            hint_text='Instructions',
+            multiline=True,
+            pos_hint={'center_x': 0.5},
+            size_hint=(1, 0.5)
+        )
+        self.box_layout.add_widget(self.recipe_instructions)
+        rating_layout = BoxLayout(pos_hint={'center_x': 0.5}, size_hint=(0.35, 0.14), spacing=10)
+        for i in range(1, 6):
+            rating_button = ToggleButton(
+                bold=True,
+                background_down='images/star/gg-star.png',
+                background_normal='images/star/gg-star-down.png',
+                color='white',
+                group='rating',
+                on_press=self.set_rating,
+                text=str(i)
+            )
+            rating_layout.add_widget(rating_button)
+        self.box_layout.add_widget(rating_layout)
+        bottom_buttons_layout = BoxLayout(size_hint=(1, 0.05))
+        bottom_buttons_layout.add_widget(
+            Button(background_color='#145DA0', on_press=self.submit_data,
+                   size_hint=(0.5, 1.15), text='Submit'))
+        bottom_buttons_layout.add_widget(
+            Button(background_color='#145DA0', on_press=self.dismiss,
+                   size_hint=(0.5, 1.15), text='Close'))
+        self.box_layout.add_widget(bottom_buttons_layout)
+        self.add_widget(self.box_layout)
+        self.load_recipe_data()
+
+    def load_recipe_data(self):
+        session = self.session_manager.create_session()
+        recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name).first()
+        if recipe:
+            self.recipe_name_input.text = recipe.recipe_name
+            self.image_path = recipe.image_path
+            self.image_label.source = self.image_path
+            self.image_description.text = recipe.image_description
+            self.recipe_instructions.text = recipe.recipe_instructions
+            self.recipe_rating = recipe.recipe_rating
+        session.close()
+
+    def save_image_to_folder(self):
+        if self.image_path:
+            destination_folder = "images"
+            filename = os.path.basename(self.image_path)
+            destination = os.path.join(destination_folder, filename)
+            counter = 1
+            while os.path.exists(destination):
+                base, ext = os.path.splitext(filename)
+                filename = f"{base}_{counter}{ext}"
+                destination = os.path.join(destination_folder, filename)
+                counter += 1
+            try:
+                shutil.copy(self.image_path, destination)
+                self.image_path = destination
+                print(f'Saved Image to: {destination}')
+                return filename
+            except Exception as e:
+                print(f'Error saving image: {e}')
+                self.show_error_notification("Error saving image")
+
+    def choose_recipe_picture(self, instance):
+        file_chooser = FileChooserIconView(on_submit=self.file_selected, path='.')
+        popup = Popup(content=file_chooser, size_hint=(0.9, 0.9), title='Select an Image')
+        popup.open()
+
+    def file_selected(self, chooser, selected, touch=None):
+        if selected:
+            self.image_path = selected[0]
+            self.image_label.source = self.image_path
+
+    def set_rating(self, instance):
+        self.recipe_rating = int(instance.text)
+        print(f'Rating set to: {self.recipe_rating}')
+
+    def submit_data(self, instance):
+        if not self.recipe_name_input.text:
+            self.show_error_notification("No recipe name is entered, try again")
+            return
+        try:
+            image_description = self.image_description.text or None
+            recipe_instructions = self.recipe_instructions.text or None
+            session = self.session_manager.create_session()
+            existing_image = session.query(ImageData).filter_by(image_path=self.image_path).first()
+            if existing_image:
+                existing_image.image_description = image_description
+            else:
+                self.save_image_to_folder()
+                new_image = ImageData(
+                    image_id=session.query(ImageData).count() + 1,
+                    image_path=self.image_path,
+                    image_description=image_description
+                )
+                session.add(new_image)
+            existing_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name_input.text).first()
+            if existing_recipe:
+                existing_recipe.image_path = self.image_path
+                existing_recipe.image_description = image_description
+                existing_recipe.recipe_instructions = recipe_instructions
+                existing_recipe.recipe_rating = self.recipe_rating
+            else:
+                new_recipe = RecipeData(
+                    recipe_name=self.recipe_name_input.text,
+                    image_path=self.image_path,
+                    image_description=image_description,
+                    recipe_instructions=recipe_instructions,
+                    recipe_rating=self.recipe_rating
+                )
+                session.add(new_recipe)
+            session.commit()
+            session.close()
+            print("Data submitted")
+            main_screen = App.get_running_app().root.get_screen('main_screen')
+            main_screen.update_scroll_view()
+            self.dismiss()
+        except Exception as e:
+            print(f'Error submitting data: {e}')
+            self.show_error_notification("Error submitting data")
+
+
 class RecipeDialog(ModalView):
     def __init__(self, session_manager, **kwargs):
         super().__init__(**kwargs)
@@ -215,7 +370,9 @@ class MainScreen(Screen):
         Clock.schedule_once(lambda dt: self.fade_label(dt, 0, 1), 0.5)
 
     def on_edit_recipe(self, instance):
-        pass
+        recipe_name = instance.text.split('-')[0].strip()
+        edit_dialog = RecipeEditDialog(session_manager=self.session_manager, recipe_name=recipe_name)
+        edit_dialog.open()
 
     def update_scroll_view(self, dt=None):
         self.scroll_layout.clear_widgets()
@@ -249,6 +406,7 @@ class MainScreen(Screen):
         )
         self.main_layout.add_widget(search_label)
         self.search_bar = TextInput(
+            hint_text='Press Enter to Search',
             multiline=False,
             size_hint=(0.8, 0.08),
             opacity=0,
