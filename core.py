@@ -17,6 +17,7 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from sqlalchemy import func, String
 import os
 import shutil
 
@@ -173,6 +174,7 @@ class MainScreen(Screen):
         super().__init__(**kwargs)
         self.session_manager = session_manager
         self.label = None
+        self.search_bar = None
         self.main_layout = FloatLayout()
         self.main_layout.canvas.before.add(Color(0.8, 0.8, 0.8, 1))
         self.rect = Rectangle(size=self.main_layout.size, pos=self.main_layout.pos)
@@ -218,7 +220,11 @@ class MainScreen(Screen):
     def update_scroll_view(self, dt=None):
         self.scroll_layout.clear_widgets()
         session = self.session_manager.create_session()
-        recipe_data = (session.query(RecipeData.recipe_name, RecipeData.recipe_rating).all())
+        search_text = self.search_bar.text.lower() if self.search_bar else ""
+        recipe_data = session.query(RecipeData.recipe_name, RecipeData.recipe_rating).filter(
+            func.lower(RecipeData.recipe_name).contains(search_text) |
+            func.cast(RecipeData.recipe_rating, String).contains(search_text)
+        ).all()
         for recipe_name, recipe_rating in recipe_data:
             if recipe_rating is None:
                 recipe_rating = '-'
@@ -242,13 +248,14 @@ class MainScreen(Screen):
             text="Search for recipes"
         )
         self.main_layout.add_widget(search_label)
-        search_bar = TextInput(
+        self.search_bar = TextInput(
             multiline=False,
             size_hint=(0.8, 0.08),
             opacity=0,
-            pos_hint={'center_x': 0.5, 'center_y': 0.75}
+            pos_hint={'center_x': 0.5, 'center_y': 0.75},
+            on_text_validate=self.update_scroll_view
         )
-        self.main_layout.add_widget(search_bar)
+        self.main_layout.add_widget(self.search_bar)
         make_recipe_button = Button(
             background_color='#145DA0',
             on_press=self.show_recipe_dialog,
@@ -259,7 +266,7 @@ class MainScreen(Screen):
         )
         self.main_layout.add_widget(make_recipe_button)
         Animation(opacity=1, duration=1.5).start(search_label)
-        Animation(opacity=1, duration=1.5).start(search_bar)
+        Animation(opacity=1, duration=1.5).start(self.search_bar)
         Animation(opacity=1, duration=1.5).start(make_recipe_button)
 
     def show_recipe_dialog(self, instance):
