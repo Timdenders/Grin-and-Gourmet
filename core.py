@@ -27,8 +27,8 @@ class RecipeEditDialog(ModalView):
         super().__init__(**kwargs)
         self.session_manager = session_manager
         self.recipe_name = recipe_name
-        self.image_path = None
-        self.recipe_rating = None
+        self.image_path = ''
+        self.recipe_rating = 0
         self.size_hint = (0.95, 0.95)
         self.box_layout = BoxLayout(orientation='vertical')
         self.box_layout.id = 'recipe_edit_box_layout'
@@ -137,8 +137,8 @@ class RecipeEditDialog(ModalView):
             self.show_error_notification("No recipe name is entered, try again")
             return
         try:
-            image_description = self.image_description.text or None
-            recipe_instructions = self.recipe_instructions.text or None
+            image_description = self.image_description.text
+            recipe_instructions = self.recipe_instructions.text
             session = self.session_manager.create_session()
             existing_image = session.query(ImageData).filter_by(image_path=self.image_path).first()
             if existing_image:
@@ -181,8 +181,8 @@ class RecipeDialog(ModalView):
     def __init__(self, session_manager, **kwargs):
         super().__init__(**kwargs)
         self.session_manager = session_manager
-        self.image_path = None
-        self.recipe_rating = None
+        self.image_path = ''
+        self.recipe_rating = 0
         self.size_hint = (0.95, 0.95)
         self.box_layout = BoxLayout(orientation='vertical')
         self.recipe_name = TextInput(
@@ -288,8 +288,8 @@ class RecipeDialog(ModalView):
             self.show_error_notification("No recipe name is entered, try again")
             return
         try:
-            image_description = self.image_description.text or None
-            recipe_instructions = self.recipe_instructions.text or None
+            image_description = self.image_description.text
+            recipe_instructions = self.recipe_instructions.text
             session = self.session_manager.create_session()
             existing_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name.text).first()
             if existing_recipe:
