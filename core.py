@@ -6,7 +6,6 @@ from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import AsyncImage, Image, Image as KivyImage
 from kivy.uix.label import Label
@@ -16,10 +15,13 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
+from pathlib import Path
 from sqlalchemy import func, String, cast
+from tkinter import filedialog, Tk
 import os
 import shutil
 import threading
+
 
 lock = threading.Lock()
 
@@ -130,13 +132,16 @@ class RecipeEditDialog(ModalView):
                 self.show_error_notification("Error saving image")
 
     def choose_recipe_picture(self, instance):
-        file_chooser = FileChooserIconView(on_submit=self.file_selected, path='.')
-        popup = Popup(content=file_chooser, size_hint=(0.9, 0.9), title='Select an Image')
-        popup.open()
-
-    def file_selected(self, chooser, selected, touch=None):
-        if selected:
-            self.image_path = selected[0]
+        root = Tk()
+        root.withdraw()
+        file_path = filedialog.askopenfilename(
+            title='Select an Image',
+            filetypes=[('Image Files', '*.png;*.jpg;*.jpeg;*.gif;*.bmp')],
+            initialdir=Path.cwd()
+        )
+        root.destroy()
+        if file_path:
+            self.image_path = file_path
             self.image_label.source = self.image_path
 
     def set_rating(self, instance):
@@ -311,15 +316,18 @@ class RecipeDialog(ModalView):
                 print(f'Error saving image: {e}')
                 self.show_error_notification("Error saving image")
 
-    def file_selected(self, chooser, selected, touch=None):
-        if selected:
-            self.image_path = selected[0]
-            self.image_label.source = self.image_path
-
     def choose_recipe_picture(self, instance):
-        file_chooser = FileChooserIconView(on_submit=self.file_selected, path='.')
-        popup = Popup(content=file_chooser, size_hint=(0.9, 0.9), title='Select an Image')
-        popup.open()
+        root = Tk()
+        root.withdraw()
+        file_path = filedialog.askopenfilename(
+            title='Select an Image',
+            filetypes=[('Image Files', '*.png;*.jpg;*.jpeg;*.gif;*.bmp')],
+            initialdir=Path.cwd()
+        )
+        root.destroy()
+        if file_path:
+            self.image_path = file_path
+            self.image_label.source = self.image_path
 
     def show_image(self, instance):
         if self.image_path:
