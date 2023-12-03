@@ -8,7 +8,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.filechooser import FileChooserIconView
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import AsyncImage, Image, Image as KivyImage
 from kivy.uix.label import Label
 from kivy.uix.modalview import ModalView
@@ -17,20 +16,24 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
 from kivy.uix.togglebutton import ToggleButton
-from sqlalchemy import func, String
+from sqlalchemy import func, String, cast
 import os
 import shutil
+import threading
+
+lock = threading.Lock()
 
 
 class RecipeEditDialog(ModalView):
     def __init__(self, session_manager, recipe_name, **kwargs):
         super().__init__(**kwargs)
+        self.submit_lock = threading.Lock()
         self.session_manager = session_manager
         self.recipe_name = recipe_name
         self.image_path = ''
         self.recipe_rating = 0
         self.size_hint = (0.95, 0.95)
-        self.box_layout = BoxLayout(orientation='vertical')
+        self.box_layout = BoxLayout(orientation='vertical', spacing=3)
         self.box_layout.id = 'recipe_edit_box_layout'
         self.recipe_name_input = TextInput(
             background_color=(0, 0, 0.2, 1),
@@ -52,7 +55,7 @@ class RecipeEditDialog(ModalView):
             hint_text='Description',
             multiline=True,
             pos_hint={'center_x': 0.5},
-            size_hint=(1, 0.1)
+            size_hint=(1, 0.35)
         )
         self.box_layout.add_widget(self.image_description)
         self.recipe_instructions = TextInput(
@@ -62,7 +65,7 @@ class RecipeEditDialog(ModalView):
             size_hint=(1, 0.5)
         )
         self.box_layout.add_widget(self.recipe_instructions)
-        rating_layout = BoxLayout(pos_hint={'center_x': 0.5}, size_hint=(0.35, 0.14), spacing=10)
+        rating_layout = BoxLayout(pos_hint={'center_x': 0.5}, size_hint=(0.4, 0.19))
         for i in range(1, 6):
             rating_button = ToggleButton(
                 bold=True,
@@ -78,10 +81,13 @@ class RecipeEditDialog(ModalView):
         bottom_buttons_layout = BoxLayout(size_hint=(1, 0.05))
         bottom_buttons_layout.add_widget(
             Button(background_color='#145DA0', on_press=self.submit_data,
-                   size_hint=(0.5, 1.15), text='Submit'))
+                   size_hint=(0.5, 1.45), text='Submit'))
+        bottom_buttons_layout.add_widget(
+            Button(background_color='#145DA0', on_press=self.delete_data,
+                   size_hint=(0.5, 1.45), text='Delete'))
         bottom_buttons_layout.add_widget(
             Button(background_color='#145DA0', on_press=self.dismiss,
-                   size_hint=(0.5, 1.15), text='Close'))
+                   size_hint=(0.5, 1.45), text='Close'))
         self.box_layout.add_widget(bottom_buttons_layout)
         self.add_widget(self.box_layout)
         self.load_recipe_data()
@@ -102,17 +108,22 @@ class RecipeEditDialog(ModalView):
         if self.image_path:
             destination_folder = "images"
             filename = os.path.basename(self.image_path)
-            destination = os.path.join(destination_folder, filename)
+            base, ext = os.path.splitext(filename)
             counter = 1
-            while os.path.exists(destination):
-                base, ext = os.path.splitext(filename)
+            while os.path.exists(os.path.join(destination_folder, filename)):
                 filename = f"{base}_{counter}{ext}"
-                destination = os.path.join(destination_folder, filename)
                 counter += 1
+            destination = os.path.join(destination_folder, filename)
+            session = self.session_manager.create_session()
+            previous_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name).first()
+            if previous_recipe and previous_recipe.image_path and os.path.exists(previous_recipe.image_path):
+                os.remove(previous_recipe.image_path)
+                print(f'Deleted previous image: {previous_recipe.image_path}')
             try:
                 shutil.copy(self.image_path, destination)
                 self.image_path = destination
                 print(f'Saved Image to: {destination}')
+                session.close()
                 return filename
             except Exception as e:
                 print(f'Error saving image: {e}')
@@ -132,26 +143,36 @@ class RecipeEditDialog(ModalView):
         self.recipe_rating = int(instance.text)
         print(f'Rating set to: {self.recipe_rating}')
 
-    def submit_data(self, instance):
-        if not self.recipe_name_input.text:
-            self.show_error_notification("No recipe name is entered, try again")
-            return
+    def on_submit_data_complete(self, instance):
+        instance.disabled = False
+        print("Data submitted")
+        main_screen = App.get_running_app().root.get_screen('main_screen')
+        main_screen.update_scroll_view()
+        self.dismiss()
+
+    def submit_data_thread(self, instance):
         try:
             image_description = self.image_description.text
             recipe_instructions = self.recipe_instructions.text
             session = self.session_manager.create_session()
+            max_image_id = session.query(func.max(cast(ImageData.image_id, String))).scalar()
+            next_image_id = str(int(max_image_id) + 1) if max_image_id else '1'
+            previous_recipe = session.query(ImageData).filter_by(recipe_name=self.recipe_name).first()
             existing_image = session.query(ImageData).filter_by(image_path=self.image_path).first()
+            existing_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name_input.text).first()
             if existing_image:
                 existing_image.image_description = image_description
             else:
                 self.save_image_to_folder()
                 new_image = ImageData(
-                    image_id=session.query(ImageData).count() + 1,
+                    image_id=next_image_id,
+                    recipe_name=self.recipe_name_input.text,
                     image_path=self.image_path,
                     image_description=image_description
                 )
                 session.add(new_image)
-            existing_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name_input.text).first()
+                if previous_recipe:
+                    session.delete(previous_recipe)
             if existing_recipe:
                 existing_recipe.image_path = self.image_path
                 existing_recipe.image_description = image_description
@@ -168,13 +189,41 @@ class RecipeEditDialog(ModalView):
                 session.add(new_recipe)
             session.commit()
             session.close()
-            print("Data submitted")
-            main_screen = App.get_running_app().root.get_screen('main_screen')
-            main_screen.update_scroll_view()
-            self.dismiss()
+            Clock.schedule_once(lambda dt: self.on_submit_data_complete(instance))
         except Exception as e:
             print(f'Error submitting data: {e}')
             self.show_error_notification("Error submitting data")
+
+    def submit_data(self, instance):
+        if not self.recipe_name_input.text:
+            self.show_error_notification("No recipe name is entered, try again")
+            return
+        with self.submit_lock:
+            instance.disabled = True
+        threading.Thread(target=self.submit_data_thread, args=(instance,)).start()
+
+    def delete_data(self, instance):
+        try:
+            session = self.session_manager.create_session()
+            image_to_delete = session.query(ImageData).filter_by(recipe_name=self.recipe_name).first()
+            recipe_to_delete = session.query(RecipeData).filter_by(recipe_name=self.recipe_name).first()
+            if recipe_to_delete:
+                if recipe_to_delete and recipe_to_delete.image_path and os.path.exists(recipe_to_delete.image_path):
+                    os.remove(recipe_to_delete.image_path)
+                    print(f'Deleted previous image: {recipe_to_delete.image_path}')
+                session.delete(image_to_delete)
+                session.delete(recipe_to_delete)
+                session.commit()
+                session.close()
+                print("Recipe deleted")
+                main_screen = App.get_running_app().root.get_screen('main_screen')
+                main_screen.update_scroll_view()
+                self.dismiss()
+            else:
+                print(f'Recipe "{self.recipe_name}" not found for deletion')
+        except Exception as e:
+            print(f'Error deleting recipe: {e}')
+            self.show_error_notification("Error deleting recipe")
 
 
 class RecipeDialog(ModalView):
@@ -184,7 +233,7 @@ class RecipeDialog(ModalView):
         self.image_path = ''
         self.recipe_rating = 0
         self.size_hint = (0.95, 0.95)
-        self.box_layout = BoxLayout(orientation='vertical')
+        self.box_layout = BoxLayout(orientation='vertical', spacing=3)
         self.recipe_name = TextInput(
             background_color=(0, 0, 0.2, 1),
             foreground_color=(1, 1, 1, 1),
@@ -204,7 +253,7 @@ class RecipeDialog(ModalView):
             hint_text='Description',
             multiline=True,
             pos_hint={'center_x': 0.5},
-            size_hint=(1, 0.1)
+            size_hint=(1, 0.35)
         )
         self.box_layout.add_widget(self.image_description)
         self.recipe_instructions = TextInput(
@@ -214,7 +263,7 @@ class RecipeDialog(ModalView):
             size_hint=(1, 0.5)
         )
         self.box_layout.add_widget(self.recipe_instructions)
-        rating_layout = BoxLayout(pos_hint={'center_x': 0.5}, size_hint=(0.35, 0.14), spacing=10)
+        rating_layout = BoxLayout(pos_hint={'center_x': 0.5}, size_hint=(0.4, 0.19))
         for i in range(1, 6):
             rating_button = ToggleButton(
                 bold=True,
@@ -230,10 +279,10 @@ class RecipeDialog(ModalView):
         bottom_buttons_layout = BoxLayout(size_hint=(1, 0.05))
         bottom_buttons_layout.add_widget(
             Button(background_color='#145DA0', on_press=self.submit_data,
-                   size_hint=(0.5, 1.15), text='Submit'))
+                   size_hint=(0.5, 1.45), text='Submit'))
         bottom_buttons_layout.add_widget(
             Button(background_color='#145DA0', on_press=self.dismiss,
-                   size_hint=(0.5, 1.15), text='Close'))
+                   size_hint=(0.5, 1.45), text='Close'))
         self.box_layout.add_widget(bottom_buttons_layout)
         self.add_widget(self.box_layout)
 
@@ -247,13 +296,12 @@ class RecipeDialog(ModalView):
         if self.image_path:
             destination_folder = "images"
             filename = os.path.basename(self.image_path)
-            destination = os.path.join(destination_folder, filename)
+            base, ext = os.path.splitext(filename)
             counter = 1
-            while os.path.exists(destination):
-                base, ext = os.path.splitext(filename)
+            while os.path.exists(os.path.join(destination_folder, filename)):
                 filename = f"{base}_{counter}{ext}"
-                destination = os.path.join(destination_folder, filename)
                 counter += 1
+            destination = os.path.join(destination_folder, filename)
             try:
                 shutil.copy(self.image_path, destination)
                 self.image_path = destination
@@ -291,16 +339,19 @@ class RecipeDialog(ModalView):
             image_description = self.image_description.text
             recipe_instructions = self.recipe_instructions.text
             session = self.session_manager.create_session()
+            max_image_id = session.query(func.max(cast(ImageData.image_id, String))).scalar()
+            next_image_id = str(int(max_image_id) + 1) if max_image_id else '1'
             existing_recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name.text).first()
             if existing_recipe:
-                message = f"Recipe with the name\n'{self.recipe_name.text}'already exists,\nchoose a different name"
+                message = f"Recipe with the name\n'{self.recipe_name.text}' already exists,\nchoose a different name"
                 print(message)
                 self.show_error_notification(message)
                 session.close()
                 return
             self.save_image_to_folder()
             new_image = ImageData(
-                image_id=session.query(ImageData).count() + 1,
+                image_id=next_image_id,
+                recipe_name=self.recipe_name.text,
                 image_path=self.image_path,
                 image_description=image_description
             )
@@ -338,7 +389,7 @@ class MainScreen(Screen):
         self.scroll_layout = BoxLayout(orientation='vertical', size_hint_y=None)
         self.scroll_layout.bind(minimum_height=self.scroll_layout.setter('height'))
         self.show_label()
-        self.scroll_view = ScrollView(opacity=0, pos_hint={'center_x': 0.5, 'center_y': 0.5}, size_hint=(0.8, 0.3))
+        self.scroll_view = ScrollView(opacity=0, pos_hint={'center_x': 0.5, 'center_y': 0.4}, size_hint=(0.8, 0.5))
         Clock.schedule_once(lambda dt: self.fade_label(dt, 1, 0), 3.5)
         self.scroll_view.add_widget(self.scroll_layout)
         self.main_layout.add_widget(self.scroll_view)
@@ -387,8 +438,10 @@ class MainScreen(Screen):
                 recipe_rating = '-'
             edit_recipe_button = Button(
                 background_color='#145DA0',
-                height=60,
+                height=100,
                 on_press=self.on_edit_recipe,
+                pos_hint={'center_x': 0.5},
+                size_hint_x=0.75,
                 size_hint_y=None,
                 text=f"{recipe_name} - Rating: {recipe_rating}/5 Stars"
             )
@@ -400,9 +453,10 @@ class MainScreen(Screen):
         search_label = Label(
             color='#050A30',
             font_size=24,
+            halign='center',
             opacity=0,
             pos_hint={'center_x': 0.5, 'center_y': 0.85},
-            text="Search for recipes"
+            text="Search for recipes\nYou can filter by recipe name or rating number"
         )
         self.main_layout.add_widget(search_label)
         self.search_bar = TextInput(
@@ -419,7 +473,7 @@ class MainScreen(Screen):
             on_press=self.show_recipe_dialog,
             opacity=0,
             pos_hint={'right': 0.98, 'top': 0.98},
-            size_hint=(0.2, 0.1),
+            size_hint=(0.18, 0.1),
             text="Make a Recipe!"
         )
         self.main_layout.add_widget(make_recipe_button)
@@ -497,7 +551,7 @@ class StartApp(App):
             self.show_error_notification("No input detected")
 
     def create_start_window(self):
-        window = GridLayout()
+        window = BoxLayout(orientation='vertical', spacing=10)
         window.cols = 1
         window.size_hint = (0.6, 0.7)
         window.pos_hint = {"center_x": 0.5, "center_y": 0.5}

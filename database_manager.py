@@ -13,6 +13,7 @@ class UserData(Base):
 class ImageData(Base):
     __tablename__ = 'image_data'
     image_id = Column(String, primary_key=True)
+    recipe_name = Column(String, ForeignKey('recipe_data.recipe_name'))
     image_path = Column(String)
     image_description = Column(String)
 
