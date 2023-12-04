@@ -38,7 +38,7 @@
 
 ## Code Structure
 This app is built using Kivy for the UI and SQLAlchemy for managing recipe data in a database. It allows users to create, edit, and delete recipes while providing a user-friendly interface for interaction.
-### Code Components
+### Code Components:
 1. **StartApp**: Manages app initialization, screen transition, and user data checks.
 2. **MainScreen**: Main interface displaying recipes and allowing CRUD operations.
 3. **RecipeDialog** and **RecipeEditDialog**: ModalViews for creating/editing recipes.
@@ -46,7 +46,7 @@ This app is built using Kivy for the UI and SQLAlchemy for managing recipe data 
 5. **SessionManager**: Handles database interactions.
 6. **File Handling and UI Components**: Functions for UI creation, file handling, and event management.
 
-### UML Diagram
+### UML Diagram:
 <div align="center">
 <img src="repo_images/gg-UML.png" width="650px">
 </div>
@@ -104,10 +104,10 @@ This app is built using Kivy for the UI and SQLAlchemy for managing recipe data 
   </div>
 
 ## Discussion and Conclusions
-### Project Issues and Limitations
+### Project Issues and Limitations:
 1. **Scalability**: The current version of Grin & Gourmet can face some challenges in scaling for larger datasets. If performance issues might arise when there substantial number of recipes.
 2. **File Handling**: Uploading large image files might pose challenges in terms of storage management and loading times.
 3. **Testing Coverage**: Grin & Gourmet has not yet been through as extensive testing as we were like. There might still be some edge cases and error scenarios that have not been covered. 
 4. **Insufficient Market Research**: Grin & Gourmet hasn't undergone public testing yet, leaving uncertainties about how individuals beyond our team perceive the UI design
 
-### Application of Course Learnings
+### Application of Course Learnings:
