@@ -16,7 +16,7 @@
 <div align="center">
 <img src="repo_images/installation-usage-1.png" width="850px">
 </div>
-<br><p>Unzip the file by right-clicking on the zip file and selecting "Extract All." Click on "Extract" to proceed. A new folder will emerge in the same directory. Navigate into it, access the subsequent folder, and double-click on the "Grin&Gourmet.exe" file</p><br>
+<br><p>Unzip the file by right-clicking on the zip file and selecting "Extract All." Click on "Extract" to proceed. A new folder will emerge in the same directory. Navigate into it, access the subsequent folder, and double-click on the "Grin&Gourmet.exe" file.</p><br>
 <div align="center">
 <img src="repo_images/installation-usage-3.png" width="580px">
 </div>
@@ -111,7 +111,6 @@ This app is built using Kivy for the UI and SQLAlchemy for managing recipe data 
 4. **Insufficient Market Research**: Grin & Gourmet hasn't undergone public testing yet, leaving uncertainties about how individuals beyond our team perceive the UI design
 
 ### Application of Course Learning:
-1. We have made use of threading for concurrent operations, especially in handling user-initiated tasks like uploading images, editing, deleting recipes, preventing the GUI from freezing during database operations.
+1. We have made use of threading for concurrent operations, especially in handling user-initiated tasks like uploading images, editing, deleting recipes, and preventing the GUI from freezing during database operations.
 2. File system interactions and I/O operations are utilized when handling image files, managing their paths, copying, deleting, and ensuring proper storage. 
-3. For I/O Operations, we mainly utilize an external library, kivy, to handle user interaction with the application.  
-
+3. For I/O Operations, we mainly utilize an external library, Kivy, to handle user interaction with the application.
