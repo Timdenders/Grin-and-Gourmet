@@ -2,7 +2,7 @@
 <div align="center">
 <img src="images/gg-icon.png" width="256px">
 </div>
-<h3 align="center"> Team Members: Timothy Enders, Xingyu Jiang</h5>
+<h3 align="center"> Team Members: Timothy Enders, Xingyu Jiang</h3>
 
 ## Introduction
    - Project Overview:
@@ -23,16 +23,16 @@
 
 ## Usage Instructions
 ### Start Screen:
-- If you haven't done so already, input your name and then click the submit button. This action will present a warm welcome message incorporating the entered name.
+- If you haven't done so already, input your name and then click the "submit" button. This action will present a warm welcome message incorporating the entered name.
 ### Main Screen:
-- On the main screen, you can view your recipes, if any have been created.
+- On the main screen, you can view your recipes if any have been created.
 - Utilize the search bar to filter recipes by name or rating.
 - To edit or view a recipe, select the recipe, triggering a dialog box for editing purposes.
 - To create a new recipe, click the button located in the top-right corner. This action will open a dialog box for you to compose a new recipe.
 ### Edit/Create Dialog Box:
 - Within this dialog box, provide details such as the recipe name, description, and instructions, and select a rating.
 - Clicking the "upload image" button opens a separate window, enabling you to choose an image from your computer to display in the dialog box.
-- Selecting the submit button will either create a new recipe or save the edits.
+- Selecting the "submit" button will either create a new recipe or save the edits.
 - If in the edit dialog box, a delete button will be visible. Clicking it will delete the recipe.
 - The close button deactivates the dialog box.
 
@@ -73,7 +73,7 @@ This app is built using Kivy for the UI and SQLAlchemy for managing recipe data 
   </div>
 ### Edit a Recipe:
 - **Functionality**
-     - Users have the option to modify the recipe description, image path, instructions, and rating, with all changes promptly reflected in the database file.
+     - Users can modify the recipe description, image path, instructions, and rating, with all changes promptly reflected in the database file.
   <br>
   <div align="center">
   <img src="repo_images/func_testing-4.PNG" alt="Alt text" width="800"/>
@@ -110,4 +110,8 @@ This app is built using Kivy for the UI and SQLAlchemy for managing recipe data 
 3. **Testing Coverage**: Grin & Gourmet has not yet been through as extensive testing as we were like. There might still be some edge cases and error scenarios that have not been covered. 
 4. **Insufficient Market Research**: Grin & Gourmet hasn't undergone public testing yet, leaving uncertainties about how individuals beyond our team perceive the UI design
 
-### Application of Course Learnings:
+### Application of Course Learning:
+1. We have made use of threading for concurrent operations, especially in handling user-initiated tasks like uploading images, editing, deleting recipes, preventing the GUI from freezing during database operations.
+2. File system interactions and I/O operations are utilized when handling image files, managing their paths, copying, deleting, and ensuring proper storage. 
+3. For I/O Operations, we mainly utilize an external library, kivy, to handle user interaction with the application.  
+
