@@ -26,7 +26,9 @@ import threading
 lock = threading.Lock()
 
 
+# RecipeEditDialog class for handling the editing of existing recipes.
 class RecipeEditDialog(ModalView):
+    # Initializes the RecipeEditDialog with necessary attributes and widgets.
     def __init__(self, session_manager, recipe_name, **kwargs):
         super().__init__(**kwargs)
         self.submit_lock = threading.Lock()
@@ -94,6 +96,7 @@ class RecipeEditDialog(ModalView):
         self.add_widget(self.box_layout)
         self.load_recipe_data()
 
+    # Loads existing recipe data into the dialog for editing.
     def load_recipe_data(self):
         session = self.session_manager.create_session()
         recipe = session.query(RecipeData).filter_by(recipe_name=self.recipe_name).first()
@@ -106,6 +109,7 @@ class RecipeEditDialog(ModalView):
             self.recipe_rating = recipe.recipe_rating
         session.close()
 
+    # Saves the selected image to the images folder and updates the image path.
     def save_image_to_folder(self):
         if self.image_path:
             destination_folder = "images"
@@ -131,6 +135,7 @@ class RecipeEditDialog(ModalView):
                 print(f'Error saving image: {e}')
                 self.show_error_notification("Error saving image")
 
+    # Opens a file dialog to choose a recipe picture.
     def choose_recipe_picture(self, instance):
         root = Tk()
         root.withdraw()
@@ -144,10 +149,12 @@ class RecipeEditDialog(ModalView):
             self.image_path = file_path
             self.image_label.source = self.image_path
 
+    # Sets the rating based on the selected star button.
     def set_rating(self, instance):
         self.recipe_rating = int(instance.text)
         print(f'Rating set to: {self.recipe_rating}')
 
+    # Callback function after submitting data to update the main screen.
     def on_submit_data_complete(self, instance):
         instance.disabled = False
         print("Data submitted")
@@ -155,6 +162,7 @@ class RecipeEditDialog(ModalView):
         main_screen.update_scroll_view()
         self.dismiss()
 
+    # Threaded function to submit data to the database in a separate thread.
     def submit_data_thread(self, instance):
         try:
             image_description = self.image_description.text
@@ -199,6 +207,7 @@ class RecipeEditDialog(ModalView):
             print(f'Error submitting data: {e}')
             self.show_error_notification("Error submitting data")
 
+    # Submits the data to the database in a separate thread.
     def submit_data(self, instance):
         if not self.recipe_name_input.text:
             self.show_error_notification("No recipe name is entered, try again")
@@ -207,6 +216,7 @@ class RecipeEditDialog(ModalView):
             instance.disabled = True
         threading.Thread(target=self.submit_data_thread, args=(instance,)).start()
 
+    # Deletes the selected recipe and associated image data.
     def delete_data(self, instance):
         try:
             session = self.session_manager.create_session()
@@ -231,7 +241,9 @@ class RecipeEditDialog(ModalView):
             self.show_error_notification("Error deleting recipe")
 
 
+# RecipeDialog class for handling the creation of new recipes.
 class RecipeDialog(ModalView):
+    # Initializes the RecipeDialog with necessary attributes and widgets.
     def __init__(self, session_manager, **kwargs):
         super().__init__(**kwargs)
         self.session_manager = session_manager
@@ -291,12 +303,14 @@ class RecipeDialog(ModalView):
         self.box_layout.add_widget(bottom_buttons_layout)
         self.add_widget(self.box_layout)
 
+    # Displays an error notification as a popup.
     @staticmethod
     def show_error_notification(message):
         content = Label(text=message)
         popup = Popup(title='Error', content=content, size_hint=(None, None), size=(400, 200))
         popup.open()
 
+    # Saves the selected image to the 'images' folder.
     def save_image_to_folder(self):
         if self.image_path:
             destination_folder = "images"
@@ -316,6 +330,7 @@ class RecipeDialog(ModalView):
                 print(f'Error saving image: {e}')
                 self.show_error_notification("Error saving image")
 
+    # Opens a file dialog to choose a recipe picture.
     def choose_recipe_picture(self, instance):
         root = Tk()
         root.withdraw()
@@ -329,16 +344,19 @@ class RecipeDialog(ModalView):
             self.image_path = file_path
             self.image_label.source = self.image_path
 
+    # Displays the selected image in the dialog.
     def show_image(self, instance):
         if self.image_path:
             image_source = f'images/{os.path.basename(self.image_path)}'
             image_widget = KivyImage(source=image_source, size_hint=(1, 1))
             self.box_layout.add_widget(image_widget)
 
+    # Sets the rating based on the selected star button.
     def set_rating(self, instance):
         self.recipe_rating = int(instance.text)
         print(f'Rating set to: {self.recipe_rating}')
 
+    # Submits the new recipe data to the database.
     def submit_data(self, instance):
         if not self.recipe_name.text:
             self.show_error_notification("No recipe name is entered, try again")
@@ -383,7 +401,9 @@ class RecipeDialog(ModalView):
             self.show_error_notification("Error submitting data")
 
 
+# MainScreen class for the main screen of the application.
 class MainScreen(Screen):
+    # Initializes the MainScreen with necessary attributes and layout.
     def __init__(self, session_manager, **kwargs):
         super().__init__(**kwargs)
         self.session_manager = session_manager
@@ -404,14 +424,17 @@ class MainScreen(Screen):
         Clock.schedule_once(self.update_scroll_view, 5.0)
         Clock.schedule_once(self.add_search_recipe_button, 5.0)
 
+    # Updates the size and position of the background rectangle.
     def update_rect(self, instance, value):
         self.rect.size = instance.size
         self.rect.pos = instance.pos
 
+    # Fades in the welcome label with an animation.
     def fade_label(self, dt, start_opacity, end_opacity):
         animation = Animation(opacity=end_opacity, duration=1.5)
         animation.start(self.label)
 
+    # Displays the welcome label.
     def show_label(self):
         session = self.session_manager.create_session()
         user_data = session.query(UserData).first()
@@ -428,11 +451,13 @@ class MainScreen(Screen):
         self.add_widget(self.main_layout)
         Clock.schedule_once(lambda dt: self.fade_label(dt, 0, 1), 0.5)
 
+    # Handles the edit button press to open the RecipeEditDialog.
     def on_edit_recipe(self, instance):
         recipe_name = instance.text.split('-')[0].strip()
         edit_dialog = RecipeEditDialog(session_manager=self.session_manager, recipe_name=recipe_name)
         edit_dialog.open()
 
+    # Updates the scroll view with recipe data from the database.
     def update_scroll_view(self, dt=None):
         self.scroll_layout.clear_widgets()
         session = self.session_manager.create_session()
@@ -457,6 +482,7 @@ class MainScreen(Screen):
         session.close()
         Animation(opacity=1, duration=1.5).start(self.scroll_view)
 
+    # Adds the search recipe button and associated widgets.
     def add_search_recipe_button(self, dt):
         search_label = Label(
             color='#050A30',
@@ -489,16 +515,20 @@ class MainScreen(Screen):
         Animation(opacity=1, duration=1.5).start(self.search_bar)
         Animation(opacity=1, duration=1.5).start(make_recipe_button)
 
+    # Displays the RecipeDialog for creating a new recipe.
     def show_recipe_dialog(self, instance):
         recipe_dialog = RecipeDialog(session_manager=self.session_manager)
         recipe_dialog.open()
 
 
+# StartScreen class for the initial screen when user data is not detected.
 class StartScreen(Screen):
     pass
 
 
+# StartApp class for the main application
 class StartApp(App):
+    # Initializes the StartApp class with necessary attributes.
     def __init__(self):
         super().__init__()
         self.button = None
@@ -510,6 +540,7 @@ class StartApp(App):
         self.screen_manager = ScreenManager()
         self.session_manager = SessionManager()
 
+    # Builds the application, checks for existing user data, and switches screens accordingly.
     def build(self):
         if self.check_user_data():
             print("User data is detected")
@@ -525,16 +556,19 @@ class StartApp(App):
         Window.minimum_height = 480
         return self.screen_manager
 
+    # Displays an error notification as a popup.
     @staticmethod
     def show_error_notification(message):
         content = Label(text=message)
         popup = Popup(title='Error', content=content, size_hint=(None, None), size=(400, 200))
         popup.open()
 
+    # Updates the size and position of the background rectangle.
     def update_rect(self, instance, value):
         self.rect.size = instance.size
         self.rect.pos = instance.pos
 
+    # Creates the layout for the start screen.
     def create_start_layout(self):
         start_layout = FloatLayout()
         with start_layout.canvas.before:
@@ -545,6 +579,7 @@ class StartApp(App):
         start_layout.add_widget(self.create_start_window())
         return start_layout
 
+    # Stores the entered username in the database and switches to the main screen.
     def store_name_and_switch(self, instance):
         if self.user.text:
             if len(self.user.text) > 20:
@@ -558,6 +593,7 @@ class StartApp(App):
             print("No input detected")
             self.show_error_notification("No input detected")
 
+    # Creates the window containing the start screen elements.
     def create_start_window(self):
         window = BoxLayout(orientation='vertical', spacing=10)
         window.cols = 1
@@ -586,18 +622,21 @@ class StartApp(App):
         window.add_widget(self.button)
         return window
 
+    # Checks if user data exists in the database.
     def check_user_data(self):
         session = self.session_manager.create_session()
         user_data = session.query(UserData).first()
         session.close()
         return user_data is not None
 
+    # Switches to the main screen of the application.
     def switch_to_main_screen(self):
         main_screen = MainScreen(name='main_screen', session_manager=self.session_manager)
         self.screen_manager.switch_to(main_screen)
         print("Switched to main screen")
 
 
+# Entry point of the application when the script is executed directly.
 if __name__ == "__main__":
     print("Commencing initialization of the Grin & Gourmet app")
     StartApp().run()
